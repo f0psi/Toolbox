@@ -1,4 +1,4 @@
-**A collection of mini script** :blush:
+**A collection of mini (some) scripts** :blush:
   
     
 #### CopyYesterday.ps1:  
