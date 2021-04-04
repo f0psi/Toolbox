@@ -83,7 +83,23 @@ def MakeReqs(url):
 			if verbose:
 				print ("req error")
 
-	return(SizeNoHeader, CodeNoHeader, SizeLocalhostHeader, CodeLocalhostHeader, SizeIPv4, CodeIPv4, SizeIPv6, CodeIPv6)
+	## 169.254.169.254 - aws ec2
+	try:
+		ReqEc2 = requests.get(url, allow_redirects=False, verify=False, stream=True, headers={'Host': '169.254.169.254'})
+		SizeEc2 = ReqIPv4.headers['Content-length']
+		CodeEc2 = ReqIPv4.status_code
+	except:
+		try:
+			response = requests.get(url, allow_redirects=False, verify=False, headers={'Host': '169.254.169.254'})
+			SizeEc2 = len(response.content)
+			CodeEc2 = response.status_code
+		except:
+			SizeEc2 = 0
+			CodeEc2 = 0
+			if verbose:
+				print ("req error")
+
+	return(SizeNoHeader, CodeNoHeader, SizeLocalhostHeader, CodeLocalhostHeader, SizeIPv4, CodeIPv4, SizeIPv6, CodeIPv6, SizeEc2, CodeEc2)
 
 
 if args.file == "":
@@ -94,11 +110,11 @@ with open(args.file,'r') as f:
 	urls = f.read().splitlines()
 
 for i in range(len(urls)):
-	SizeNoHeader, CodeNoHeader, SizeLocalhostHeader, CodeLocalhostHeader, SizeIPv4, CodeIPv4, SizeIPv6, CodeIPv6 = MakeReqs(urls[i])
+	SizeNoHeader, CodeNoHeader, SizeLocalhostHeader, CodeLocalhostHeader, SizeIPv4, CodeIPv4, SizeIPv6, CodeIPv6, SizeEc2, CodeEc2 = MakeReqs(urls[i])
 
 	#check for diffrent sizes
-	if ((SizeNoHeader != SizeLocalhostHeader or SizeNoHeader != SizeIPv4 or SizeNoHeader != SizeIPv6) and (CodeLocalhostHeader not in(400,401,403) or CodeIPv4 not in(400,401,403) or CodeIPv6 not in(400, 401, 403))):
-		print (urls[i],";",CodeNoHeader,";",SizeNoHeader,";",CodeLocalhostHeader,";",SizeLocalhostHeader,";",CodeIPv4,";",SizeIPv4,";",CodeIPv6,";",SizeIPv6)
+	if ((SizeNoHeader != SizeLocalhostHeader or SizeNoHeader != SizeIPv4 or SizeNoHeader != SizeIPv6) and (CodeLocalhostHeader not in(400,401,403) or CodeIPv4 not in(400,401,403) or CodeIPv6 not in(400, 401, 403) or CodeEc2 not in(400, 401, 403))):
+		print (urls[i],";",CodeNoHeader,";",SizeNoHeader,";",CodeLocalhostHeader,";",SizeLocalhostHeader,";",CodeIPv4,";",SizeIPv4,";",CodeIPv6,";",SizeIPv6,";",CodeEc2,";",SizeEc2)
 	else:
 		if verbose:
 			print ("all good no ssrf")
